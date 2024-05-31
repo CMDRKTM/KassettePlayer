@@ -32749,8 +32749,11 @@ function App() {
   } = useDisclosure();
   reactExports.useEffect(() => {
     const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     if (isMobileDevice) {
-      alert("Mobile devices are not supported. Please use a PC instead, or enable desktop mode in your browser.");
+      alert("Mobile support not guaranteed. Use of chrome on a PC recommended.");
+    } else if (isSafari) {
+      alert("Safari is not supported. Features may not work as expected.");
     }
   }, []);
   const [newAlbum, setNewAlbum] = reactExports.useState({
@@ -32912,7 +32915,7 @@ function App() {
     setIsPlaybackComplete(false);
   };
   const extractAudioFilesFromZip = async (zipFile) => {
-    const JSZip = await __vitePreload(() => import("./jszip.min-CwgHRpO-.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
+    const JSZip = await __vitePreload(() => import("./jszip.min-tlWPZ4EP.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
     const zip = await JSZip.loadAsync(zipFile);
     const audioFiles2 = [];
     await Promise.all(
