@@ -32751,7 +32751,7 @@ function App() {
     const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent);
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     if (isMobileDevice) {
-      alert("Mobile support not guaranteed. Use of chrome on a PC recommended.");
+      alert("Features may or may not work on mobile. Use of chrome on a PC recommended.");
     } else if (isSafari) {
       alert("Safari is not supported. Features may not work as expected.");
     }
