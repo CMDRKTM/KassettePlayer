@@ -44,10 +44,35 @@ function App() {
   useEffect(() => {
     // Load albums from electron-store
     window.ipcRenderer.invoke('load-albums').then((storedAlbums) => {
-      if (storedAlbums) setAlbums(storedAlbums);
+      if (storedAlbums) {
+        setAlbums(storedAlbums);
+  
+        // Check if album count is zero
+        if (storedAlbums.length === 0) {
+          // If it is zero, create the initial album
+          const newAlbum = {
+            title: "归来者 Vol.1",
+            creator: "Keem Cole",
+            image: "cover.jpg", // Assumes cover.jpg is in the public folder
+            files: [
+              { name: "原点.mp3", url: "原点.mp3", size: null, duration: 202.814694 },
+              { name: "复杂唉.mp3", url: "复杂唉.mp3", size: null, duration: 207.986939 },
+              { name: "雷雨天.mp3", url: "雷雨天.mp3", size: null, duration: 172.303673 },
+              { name: "微风.mp3", url: "微风.mp3", size: null, duration: 151.745306 },
+              { name: "经历.mp3", url: "经历.mp3", size: null, duration: 182.987755 },
+              { name: "宇宙船.mp3", url: "宇宙船.mp3", size: null, duration: 138.475102 },
+              { name: "清晰.mp3", url: "清晰.mp3", size: null, duration: 130.011429 },
+              { name: "飘.mp3", url: "飘.mp3", size: null, duration: 174.915918 }
+            ]
+          };
+  
+          const updatedAlbums = [newAlbum];
+          setAlbums(updatedAlbums);
+          saveAlbums(updatedAlbums);
+        }
+      }
     });
   }, []);
-
   const saveAlbums = (updatedAlbums) => {
     setAlbums(updatedAlbums);
     window.ipcRenderer.send('save-albums', updatedAlbums);
@@ -265,12 +290,12 @@ function App() {
     await Promise.all(
       Object.keys(zip.files).map(async (fileName) => {
         if (fileName.endsWith(".mp3") || fileName.endsWith(".wav")) {
-          const fileData = await zip.files[fileName].async("blob");
-          const url = URL.createObjectURL(fileData);
+          const fileData = await zip.files[fileName].async("base64"); // Extract as base64
+          const localPath = await window.ipcRenderer.invoke('save-zip-audio', fileName, fileData);
           audioFiles.push({
             name: fileName,
-            url: url,
-            size: fileData.size,
+            url: localPath,
+            size: fileData.length,
             duration: null, // Placeholder for duration
           });
         }
@@ -279,6 +304,8 @@ function App() {
   
     return audioFiles;
   };
+  
+  
 
   const playPauseAudio = () => {
     const playButton = document.getElementById("_buttonplay_");
@@ -561,11 +588,15 @@ function App() {
   
     await setDurationForFiles(newAudioFiles);
   
+    console.log('Extracted audio files:', newAudioFiles); // Debug log
+  
     setNewAlbum((prev) => ({
       ...prev,
       files: [...prev.files, ...newAudioFiles]
     }));
   };
+  
+  
   const handleAlbumImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -627,9 +658,10 @@ function App() {
       creator: newAlbum.creator.trim() ? newAlbum.creator : "Unknown",
     };
   
+    // Remove the check for image here
     const albumWithImage = {
       ...albumWithCreator,
-      image: albumWithCreator.image || "default.png"
+      image: albumWithCreator.image || "default.png",
     };
   
     if (editAlbumIndex !== null) {
@@ -646,6 +678,7 @@ function App() {
     setEditAlbumIndex(null);
     onSecondModalOpenChange();
   };
+  
   
 
   return (
@@ -740,7 +773,7 @@ function App() {
   <ModalContent>
     {(onClose) => (
       <>
-        <ModalHeader className="flex flex-col gap-1">
+        <ModalHeader className="flex flex-col gap-1"> 
           {editAlbumIndex !== null ? "Edit Album" : "New Album"}
         </ModalHeader>
         <ModalBody>
@@ -791,7 +824,7 @@ function App() {
                 }
               />
               <Button as="label" htmlFor="album-audio-upload" color="primary" auto>
-                Upload Songs
+                Upload Songs/Zip
               </Button>
               <input
                 type="file"
