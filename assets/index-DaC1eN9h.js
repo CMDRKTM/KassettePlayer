@@ -32718,7 +32718,23 @@ function App() {
   const [editAlbumIndex, setEditAlbumIndex] = reactExports.useState(null);
   const [scrollBehavior, setScrollBehavior] = React.useState("inside");
   const [audioFiles, setAudioFiles] = reactExports.useState([]);
-  const [albums, setAlbums] = reactExports.useState([]);
+  const [albums, setAlbums] = reactExports.useState([
+    {
+      title: "归来者 Vol.1",
+      creator: "Keem Cole",
+      image: "cover.jpg",
+      files: [
+        "原点.mp3",
+        "复杂唉.mp3",
+        "雷雨天.mp3",
+        "微风.mp3",
+        "经历.mp3",
+        "宇宙船.mp3",
+        "清晰.mp3",
+        "飘.mp3"
+      ].map((file) => ({ name: file, url: file }))
+    }
+  ]);
   const [currentPage, setCurrentPage] = reactExports.useState(1);
   const itemsPerPage = 3;
   const handlePageChange = (page) => {
@@ -32751,7 +32767,7 @@ function App() {
     const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent);
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     if (isMobileDevice) {
-      alert("Features may or may not work on mobile. Use of chrome on a PC recommended.");
+      alert("Mobile support not guaranteed. Use of chrome on a PC recommended.");
     } else if (isSafari) {
       alert("Safari is not supported. Features may not work as expected.");
     }
@@ -32915,7 +32931,7 @@ function App() {
     setIsPlaybackComplete(false);
   };
   const extractAudioFilesFromZip = async (zipFile) => {
-    const JSZip = await __vitePreload(() => import("./jszip.min-tlWPZ4EP.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
+    const JSZip = await __vitePreload(() => import("./jszip.min-Db8kCzpf.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
     const zip = await JSZip.loadAsync(zipFile);
     const audioFiles2 = [];
     await Promise.all(
