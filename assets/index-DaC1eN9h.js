@@ -32931,7 +32931,7 @@ function App() {
     setIsPlaybackComplete(false);
   };
   const extractAudioFilesFromZip = async (zipFile) => {
-    const JSZip = await __vitePreload(() => import("./jszip.min-DakK1gBG.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
+    const JSZip = await __vitePreload(() => import("./jszip.min-D4g7ZhFM.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
     const zip = await JSZip.loadAsync(zipFile);
     const audioFiles2 = [];
     await Promise.all(
@@ -33106,7 +33106,7 @@ function App() {
       const updateRadius = () => {
         const musicLength = getTotalDuration();
         let radius1, radius2;
-        if (musicLength === 0 || musicLength === Infinity || musicLength == null) {
+        if (musicLength === 0 || musicLength === Infinity || musicLength === null) {
           radius1 = 160;
           radius2 = 0;
         } else {
