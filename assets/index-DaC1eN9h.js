@@ -33110,9 +33110,8 @@ function App() {
           radius1 = 160;
           radius2 = 0;
         } else {
-          const currentTime2 = getCurrentTime();
-          radius1 = 160 - currentTime2 / musicLength * 75;
-          radius2 = currentTime2 / musicLength * 75 + 85;
+          radius1 = 160 - currentTime / musicLength * 75;
+          radius2 = currentTime / musicLength * 75 + 85;
         }
         tape1.querySelector("circle").setAttribute("r", radius1);
         tape2.querySelector("circle").setAttribute("r", radius2);
