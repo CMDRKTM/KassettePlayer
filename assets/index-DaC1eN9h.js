@@ -32931,7 +32931,7 @@ function App() {
     setIsPlaybackComplete(false);
   };
   const extractAudioFilesFromZip = async (zipFile) => {
-    const JSZip = await __vitePreload(() => import("./jszip.min-Db8kCzpf.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
+    const JSZip = await __vitePreload(() => import("./jszip.min-DakK1gBG.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
     const zip = await JSZip.loadAsync(zipFile);
     const audioFiles2 = [];
     await Promise.all(
@@ -33105,8 +33105,15 @@ function App() {
       }
       const updateRadius = () => {
         const musicLength = getTotalDuration();
-        const radius1 = 160 - currentTime / musicLength * 75;
-        const radius2 = currentTime / musicLength * 75 + 85;
+        let radius1, radius2;
+        if (musicLength === 0 || musicLength === Infinity || musicLength == null) {
+          radius1 = 160;
+          radius2 = 0;
+        } else {
+          const currentTime2 = getCurrentTime();
+          radius1 = 160 - currentTime2 / musicLength * 75;
+          radius2 = currentTime2 / musicLength * 75 + 85;
+        }
         tape1.querySelector("circle").setAttribute("r", radius1);
         tape2.querySelector("circle").setAttribute("r", radius2);
       };
