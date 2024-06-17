@@ -33214,7 +33214,7 @@ function App() {
     const newFiles = newAlbum.files.filter((_2, fileIndex) => fileIndex !== index);
     setNewAlbum({ ...newAlbum, files: newFiles });
   };
-  const handleEditAlbum = (index) => {
+  const handleEditAlbum = async (index) => {
     const albumToEdit = albums[index];
     const filesToEdit = albumToEdit.files.map((file) => {
       if (typeof file === "string") {
@@ -33226,6 +33226,19 @@ function App() {
       }
       return null;
     }).filter((file) => file !== null);
+    const setDurationForFiles = async (files) => {
+      const promises = files.map((file) => {
+        return new Promise((resolve) => {
+          const audio = new Audio(file.url);
+          audio.onloadedmetadata = () => {
+            file.duration = audio.duration;
+            resolve();
+          };
+        });
+      });
+      await Promise.all(promises);
+    };
+    await setDurationForFiles(filesToEdit);
     setNewAlbum({ ...albumToEdit, files: filesToEdit });
     setEditAlbumIndex(index);
     onSecondModalOpen();
