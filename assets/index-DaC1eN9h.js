@@ -32931,7 +32931,7 @@ function App() {
     setIsPlaybackComplete(false);
   };
   const extractAudioFilesFromZip = async (zipFile) => {
-    const JSZip = await __vitePreload(() => import("./jszip.min-D4g7ZhFM.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
+    const JSZip = await __vitePreload(() => import("./jszip.min-DqRhyKcs.js").then((n2) => n2.j), true ? [] : void 0, import.meta.url);
     const zip = await JSZip.loadAsync(zipFile);
     const audioFiles2 = [];
     await Promise.all(
