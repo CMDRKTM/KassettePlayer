@@ -41,38 +41,41 @@ function App() {
     currentPage * itemsPerPage
   );
 
-  useEffect(() => {
-    // Load albums from electron-store
-    window.ipcRenderer.invoke('load-albums').then((storedAlbums) => {
-      if (storedAlbums) {
-        setAlbums(storedAlbums);
-  
-        // Check if album count is zero
-        if (storedAlbums.length === 0) {
-          // If it is zero, create the initial album
-          const newAlbum = {
-            title: "归来者 Vol.1",
-            creator: "Keem Cole",
-            image: "cover.jpg", // Assumes cover.jpg is in the public folder
-            files: [
-              { name: "原点.mp3", url: "原点.mp3", size: null, duration: 202.814694 },
-              { name: "复杂唉.mp3", url: "复杂唉.mp3", size: null, duration: 207.986939 },
-              { name: "雷雨天.mp3", url: "雷雨天.mp3", size: null, duration: 172.303673 },
-              { name: "微风.mp3", url: "微风.mp3", size: null, duration: 151.745306 },
-              { name: "经历.mp3", url: "经历.mp3", size: null, duration: 182.987755 },
-              { name: "宇宙船.mp3", url: "宇宙船.mp3", size: null, duration: 138.475102 },
-              { name: "清晰.mp3", url: "清晰.mp3", size: null, duration: 130.011429 },
-              { name: "飘.mp3", url: "飘.mp3", size: null, duration: 174.915918 }
-            ]
-          };
-  
-          const updatedAlbums = [newAlbum];
-          setAlbums(updatedAlbums);
-          saveAlbums(updatedAlbums);
-        }
+ useEffect(() => {
+  const loadAlbums = async () => {
+    const storedAlbums = await window.ipcRenderer.invoke('load-albums');
+    if (storedAlbums) {
+      setAlbums(storedAlbums);
+
+      // Check if album count is zero
+      if (storedAlbums.length === 0) {
+        // If it is zero, create the initial album
+        const newAlbum = {
+          title: "归来者 Vol.1",
+          creator: "Keem Cole",
+          image: "cover.jpg", // Assumes cover.jpg is in the public folder
+          files: [
+            { name: "原点.mp3", url: "原点.mp3", size: null, duration: 202.814694 },
+            { name: "复杂唉.mp3", url: "复杂唉.mp3", size: null, duration: 207.986939 },
+            { name: "雷雨天.mp3", url: "雷雨天.mp3", size: null, duration: 172.303673 },
+            { name: "微风.mp3", url: "微风.mp3", size: null, duration: 151.745306 },
+            { name: "经历.mp3", url: "经历.mp3", size: null, duration: 182.987755 },
+            { name: "宇宙船.mp3", url: "宇宙船.mp3", size: null, duration: 138.475102 },
+            { name: "清晰.mp3", url: "清晰.mp3", size: null, duration: 130.011429 },
+            { name: "飘.mp3", url: "飘.mp3", size: null, duration: 174.915918 }
+          ]
+        };
+
+        const updatedAlbums = [newAlbum];
+        setAlbums(updatedAlbums);
+        saveAlbums(updatedAlbums);
       }
-    });
-  }, []);
+    }
+  };
+
+  loadAlbums();
+}, []);
+
   const saveAlbums = (updatedAlbums) => {
     setAlbums(updatedAlbums);
     window.ipcRenderer.send('save-albums', updatedAlbums);
@@ -86,6 +89,7 @@ function App() {
   const audioRefs = useRef([]);
   const fxRef = useRef(null);
   const clickRef = useRef(null);
+  const loadRef = useRef(null);
   const clickOnceRef = useRef(null);
 
   const actionStartTime = useRef(0);
@@ -143,9 +147,13 @@ function App() {
       }
     };
 
+
+
     const handleCassetteClick = () => {
       onOpen();
     };
+
+
 
     const handleRewindClick = () => {
       if (audioFiles.length === 0) {
@@ -461,6 +469,19 @@ function App() {
     }
   }, [audioFiles]);
 
+  useEffect(() => {
+    const updateDigits = (timeInSeconds) => {
+      const digits = String(timeInSeconds).padStart(3, '0').slice(-3).split('');
+      digits.forEach((digit, index) => {
+        for (let i = 0; i < 10; i++) {
+          document.getElementById(`digit_${index + 1}_${i}`).querySelector('path').setAttribute("fill", i === parseInt(digit) ? "black" : "none");
+        }
+      });
+    };
+
+    updateDigits(Math.floor(currentTime));
+  }, [currentTime]);
+
   const handleOnDragEnd = (result) => {
     if (!result.destination) return;
   
@@ -476,35 +497,39 @@ function App() {
   useEffect(() => {
     const tape1 = document.getElementById("Tape1");
     const tape2 = document.getElementById("Tape2");
-
+  
     if (tape1 && tape2) {
-      if (isPlaying) {
-        if (isFastForwarding) {
-          tape1.style.animation = "tapeAnimation 0.4s linear infinite";
-          tape2.style.animation = "tapeAnimation 0.4s linear infinite";
-        } else if (isReversing) {
-          tape1.style.animation = "tapeAnimationReverse 0.4s linear infinite";
-          tape2.style.animation = "tapeAnimationReverse 0.4s linear infinite";
+      const updateRadiusAndSpeed = () => {
+        const musicLength = getTotalDuration();
+        let radius1, radius2;
+  
+        if (musicLength === 0 || musicLength === Infinity || musicLength === null) {
+          radius1 = 160;
+          radius2 = 85;
         } else {
-          tape1.style.animation = "tapeAnimation 2s linear infinite";
-          tape2.style.animation = "tapeAnimation 2s linear infinite";
+          radius1 = 160 - (currentTime / musicLength) * 75;
+          radius2 = (currentTime / musicLength) * 75 + 85;
         }
+  
+        tape1.querySelector("circle").setAttribute("r", radius1);
+        tape2.querySelector("circle").setAttribute("r", radius2);
+  
+        const normalSpeed1 = 60 / (3 * radius1 / (radius1 + radius2));
+        const normalSpeed2 = 60 / (3 * radius2 / (radius2 + radius1));
+        const speedFactor = isFastForwarding || isReversing ? 3 : 1;
+  
+        const animationDuration1 = `${60 / (normalSpeed1 * speedFactor)}s`;
+        const animationDuration2 = `${60 / (normalSpeed2 * speedFactor)}s`;
+  
+        tape1.style.animation = `tapeAnimation ${animationDuration1} linear infinite`;
+        tape2.style.animation = `tapeAnimation ${animationDuration2} linear infinite`;
+      };
+  
+      if (isPlaying) {
+        updateRadiusAndSpeed();
       } else {
         tape1.style.animation = "none";
         tape2.style.animation = "none";
-      }
-
-      const updateRadius = () => {
-        const musicLength = getTotalDuration();
-        const radius1 = 160 - (currentTime / musicLength) * 75;
-        const radius2 = (currentTime / musicLength) * 75 + 85;
-
-        tape1.querySelector("circle").setAttribute("r", radius1);
-        tape2.querySelector("circle").setAttribute("r", radius2);
-      };
-
-      if (hasStartedPlaying) {
-        updateRadius();
       }
     }
   }, [
@@ -514,6 +539,8 @@ function App() {
     currentTime,
     hasStartedPlaying,
   ]);
+  
+  
 
   const playAlbum = (albumTitle) => {
     const albumToPlay = albums.find((a) => a.title === albumTitle);
@@ -545,6 +572,7 @@ function App() {
     
           setIsPlaying(true);
           setHasStartedPlaying(true);
+          loadRef.current.play();
         }
       }, 100);
     
@@ -683,7 +711,6 @@ function App() {
 
   return (
     <div className="audio-player">
-
       <input
         type="file"
         id="file-upload"
@@ -703,11 +730,12 @@ function App() {
           ))}
           <audio ref={fxRef} src="./fx.mp3?asset" loop />
           <audio ref={clickRef} src="./click.mp3?asset" />
-          <audio ref={clickOnceRef} src="./clickonce.mp3?asset" />
+          <audio ref={loadRef} src="./load.mp3?asset" />
 
+          <audio ref={clickOnceRef} src="./clickonce.mp3?asset" />
         </div>
       )}
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange} >
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} >
         <ModalContent>
           {() => (
             <>
@@ -721,27 +749,25 @@ function App() {
                 <div className="flex flex-col gap-4">
                   {paginatedAlbums.map((album, index) => (
                     <Card key={index} className="flex">
-                      <CardBody className="flex flex-row items-center">
+                      <CardBody className="flex flex-row items-center non-selectable">
                         <img
                           src={album.image}
                           alt={`${album.title} Album`}
                           className="w-24 h-24 object-cover rounded-lg"
                         />
-                        <div className="ml-4 flex-1">
+                        <div className="ml-4 flex-1 non-selectable">
                           <h3 className="text-md font-bold">{album.title}</h3>
                           <p className="text-sm text-gray-600">{album.creator}</p>
                         </div>
                         <Button
-  isIconOnly
-  className="text-default-900/60 data-[hover]:bg-foreground/10 -translate-y-0 translate-x-0"
-  radius="full"
-  variant="light"
-  onPress={() => handleEditAlbum(index)}
->
-  <EditIcon style={{ opacity: 0.5 }} />
-</Button>
-
-
+                          isIconOnly
+                          className="text-default-900/60 data-[hover]:bg-foreground/10 -translate-y-0 translate-x-0"
+                          radius="full"
+                          variant="light"
+                          onPress={() => handleEditAlbum(index)}
+                        >
+                          <EditIcon style={{ opacity: 0.5 }} />
+                        </Button>
                         <Button
                           color="primary"
                           className="ml-0"
@@ -767,145 +793,149 @@ function App() {
           )}
         </ModalContent>
       </Modal>
-
-   <Modal isOpen={isSecondModalOpen} onOpenChange={onSecondModalOpenChange}         scrollBehavior={scrollBehavior}
->
-  <ModalContent>
-    {(onClose) => (
-      <>
-        <ModalHeader className="flex flex-col gap-1"> 
-          {editAlbumIndex !== null ? "Edit Album" : "New Album"}
-        </ModalHeader>
-        <ModalBody>
-          <div className="flex flex-row justify-evenly">
-            <label htmlFor="album-image-upload">
-            <Image
-  isZoomed
-  width={160}
-  height={160}
-  alt="Uploaded Image"
-  src={newAlbum.image || "uploadicon2.png"}
-  style={{ objectFit: 'cover', width: '160px', height: '160px' }}
-/>
-
-            </label>
-            <input
-              type="file"
-              id="album-image-upload"
-              accept="image/*"
-              onChange={handleAlbumImageUpload}
-              style={{ display: "none" }}
-            />
-            <div className="flex flex-col justify-between gap-0.5">
-              <Input
-                autoFocus
-                label="Album Name"
-                placeholder=""
-                variant="bordered"
-                value={newAlbum.title}
-                onChange={(e) =>
-                  setNewAlbum((prev) => ({
-                    ...prev,
-                    title: e.target.value,
-                  }))
-                }
-              />
-              <Input
-                autoFocus
-                label="Creator Name"
-                placeholder=""
-                variant="bordered"
-                value={newAlbum.creator}
-                onChange={(e) =>
-                  setNewAlbum((prev) => ({
-                    ...prev,
-                    creator: e.target.value,
-                  }))
-                }
-              />
-              <Button as="label" htmlFor="album-audio-upload" color="primary" auto>
-                Upload Songs/Zip
-              </Button>
-              <input
-                type="file"
-                id="album-audio-upload"
-                accept="audio/*,.zip"
-                multiple
-                onChange={handleNewAlbumFileUpload}
-                style={{ display: "none" }}
-              />
-            </div>
-          </div>
-
-          <DragDropContext onDragEnd={handleOnDragEnd}>
-            <Droppable droppableId="files">
-              {(provided) => (
-                <div
-                  className="flex flex-col gap-1.5 mt-4"
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                >
-                  {newAlbum.files.map((file, index) => (
-                    <Draggable key={index} draggableId={String(index)} index={index}>
-                      {(provided) => (
-                        <Card
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="flex"
-                        >
-                          <CardBody className="flex flex-row justify-between">
-                            <p>
-                              {file.name.length > 10
-                                ? `${file.name.substring(0, 15)}...`
-                                : file.name}
-                            </p>
-                            <div className="flex flex-row">
-                              <p className="text-default-500">
-                                {file.duration
-                                  ? `${Math.floor(file.duration / 60)}:${Math.floor(file.duration % 60).toString().padStart(2, '0')}`
-                                  : "Loading..."}
-                              </p>
-                              <Button
-                                color="danger"
-                                variant="light"
-                                onPress={() => handleDelete(index)}
-                                style={{ height: "15px", fontSize: "15px", padding: "0 0px" }}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </CardBody>
-                        </Card>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
+  
+      <Modal
+        isOpen={isSecondModalOpen}
+        onOpenChange={onSecondModalOpenChange}
+        scrollBehavior={scrollBehavior}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                {editAlbumIndex !== null ? "Edit Album" : "New Album"}
+              </ModalHeader>
+              <ModalBody>
+                <div className="flex flex-row justify-evenly">
+                  <label htmlFor="album-image-upload">
+                    <Image
+                      isZoomed
+                      width={160}
+                      height={160}
+                      alt="Uploaded Image"
+                      src={newAlbum.image || "uploadicon2.png"}
+                      style={{ objectFit: 'cover', width: '160px', height: '160px' }}
+                    />
+                  </label>
+                  <input
+                    type="file"
+                    id="album-image-upload"
+                    accept="image/*"
+                    onChange={handleAlbumImageUpload}
+                    style={{ display: "none" }}
+                  />
+                  <div className="flex flex-col justify-between gap-0.5">
+                    <Input
+                      autoFocus
+                      label="Album Name"
+                      placeholder=""
+                      variant="bordered"
+                      value={newAlbum.title}
+                      onChange={(e) =>
+                        setNewAlbum((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
+                      spellCheck={false} // Disable spell check
+                    />
+                    <Input
+                      autoFocus
+                      label="Creator Name"
+                      placeholder=""
+                      variant="bordered"
+                      value={newAlbum.creator}
+                      onChange={(e) =>
+                        setNewAlbum((prev) => ({
+                          ...prev,
+                          creator: e.target.value,
+                        }))
+                      }
+                      spellCheck={false} // Disable spell check
+                    />
+                    <Button as="label" htmlFor="album-audio-upload" color="primary" auto>
+                      Upload Songs/Zip
+                    </Button>
+                    <input
+                      type="file"
+                      id="album-audio-upload"
+                      accept="audio/*,.zip"
+                      multiple
+                      onChange={handleNewAlbumFileUpload}
+                      style={{ display: "none" }}
+                    />
+                  </div>
                 </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        </ModalBody>
-        <ModalFooter>
-          {editAlbumIndex !== null ? (
-            <Button color="danger" variant="light" onPress={() => handleRemoveAlbum(editAlbumIndex)}>
-              Remove Album
-            </Button>
-          ) : (
-            <Button color="danger" variant="light" onPress={onSecondModalOpenChange}>
-              Close
-            </Button>
+                <DragDropContext onDragEnd={handleOnDragEnd}>
+                  <Droppable droppableId="files">
+                    {(provided) => (
+                      <div
+                        className="flex flex-col gap-1.5 mt-4"
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                      >
+                        {newAlbum.files.map((file, index) => (
+                          <Draggable key={index} draggableId={String(index)} index={index}>
+                            {(provided) => (
+                              <Card
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="flex non-selectable"
+                              >
+                                <CardBody className="flex flex-row justify-between">
+                                  <p>
+                                    {file.name.length > 10
+                                      ? `${file.name.substring(0, 15)}...`
+                                      : file.name}
+                                  </p>
+                                  <div className="flex flex-row">
+                                    <p className="text-default-500">
+                                      {file.duration
+                                        ? `${Math.floor(file.duration / 60)}:${Math.floor(file.duration % 60).toString().padStart(2, '0')}`
+                                        : "Loading..."}
+                                    </p>
+                                    <Button
+                                      color="danger"
+                                      variant="light"
+                                      onPress={() => handleDelete(index)}
+                                      style={{ height: "15px", fontSize: "15px", padding: "0 0px" }}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </CardBody>
+                              </Card>
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              </ModalBody>
+              <ModalFooter>
+                {editAlbumIndex !== null ? (
+                  <Button color="danger" variant="light" onPress={() => handleRemoveAlbum(editAlbumIndex)}>
+                    Remove Album
+                  </Button>
+                ) : (
+                  <Button color="danger" variant="light" onPress={onSecondModalOpenChange}>
+                    Close
+                  </Button>
+                )}
+                <Button color="primary" onPress={handleAddOrEditAlbum}>
+                  {editAlbumIndex !== null ? "Save Changes" : "Add"}
+                </Button>
+              </ModalFooter>
+            </>
           )}
-          <Button color="primary" onPress={handleAddOrEditAlbum}>
-            {editAlbumIndex !== null ? "Save Changes" : "Add"}
-          </Button>
-        </ModalFooter>
-      </>
-    )}
-  </ModalContent>
-</Modal>
+        </ModalContent>
+      </Modal>
     </div>
   );
+  
 }
 
 export default App;

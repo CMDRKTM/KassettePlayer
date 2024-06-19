@@ -18,8 +18,17 @@
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "win": {
-    "target": ["portable"],
-    "icon": "build/icon.png"
+    "target": [
+      {
+        "target": "portable"
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false
   },
   "linux": {
     "target": [

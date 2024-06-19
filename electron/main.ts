@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain,Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'fs';
@@ -30,7 +30,7 @@ function createWindow() {
     },
   });
 
-  Menu.setApplicationMenu(null);
+ Menu.setApplicationMenu(null);
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', new Date().toLocaleString());
   });
@@ -57,9 +57,10 @@ app.on('activate', () => {
 
 app.whenReady().then(createWindow);
 
-ipcMain.handle('load-albums', () => {
-  return store.get('albums', []);
+ipcMain.handle('load-albums', async () => {
+  return await store.get('albums', []);
 });
+
 
 ipcMain.on('save-albums', (_, albums) => {
   store.set('albums', albums);
