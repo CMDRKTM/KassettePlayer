@@ -1,6 +1,6 @@
 # Kassette Player
 
-Kassette Player is a cassette-styled music player built with React and ElectronJS.
+Kassette Player is a cassette-styled music player built with React and ElectronJS. It is a project affliated to the [Retro Game Museum](https://retrogamemuseum.org).
 
 ![Kassette Player Logo](https://github.com/CMDRKTM/KassettePlayer/assets/123240001/b9193409-3013-46a6-8835-a60003694b57)
 
