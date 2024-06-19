@@ -5,8 +5,8 @@ Kassette Player is a cassette-styled music player built with React and ElectronJ
 ![Kassette Player Logo](https://github.com/CMDRKTM/KassettePlayer/assets/123240001/b9193409-3013-46a6-8835-a60003694b57)
 
 ## Features
-- Supports importing and retaining album data.
-- Works identically on both Windows and MacOS.
+- Import and enjoy your albums in seemless cassette-styled play. No swapping songs, only fastf and reverse.
+- Enjoy the aesthetics of cassette, and more importantly- enjoy albums in the way intended.
 
 ## Installation
 
